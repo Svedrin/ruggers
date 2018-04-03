@@ -33,7 +33,7 @@ def main():
         response = json.loads(data)
         if response != "Ok":
             print(response)
-        time.sleep(.3)
+        time.sleep(.003)
 
         for target in targets:
             if target == writer:
@@ -44,10 +44,10 @@ def main():
             data, addr = sock.recvfrom(1024)
             response = json.loads(data)
             if response["Value"][1] != value:
-                print("[%s] Expected %s, got %r" % (writer, value, response["Value"][1]))
+                print("[%-16s] Expected %s, got %r" % (writer[0], value, response["Value"][1]))
             else:
-                print("[%s] Response is correct" % str(writer))
-            time.sleep(.1)
+                print("[%-16s] Response is correct" % writer[0])
+            time.sleep(.001)
 
 
 if __name__ == '__main__':
