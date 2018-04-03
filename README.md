@@ -66,8 +66,12 @@ And query it on the other:
     {"Value":["hallo4","lolol4"]}
 
 Nodes will seamlessly merge the changes they get, if their local data isn't newer.
-If it is, they'll `panic!` and you'll have to restart the whole cluster.
-(I should probably improve that.)
+If it is, they'll ignore the old data set.
+
+If the connection between cluster nodes gets lost and their datasets diverge,
+they won't notice until the connection is re-established. At that point,
+one node will receive data that is too far in the future. Then it'll `panic!`
+and you'll have to restart the whole cluster. (I should probably improve that.)
 
 
 ## Snapshots
