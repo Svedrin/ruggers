@@ -53,7 +53,7 @@ fn main() {
                         CmdResult::Ok
                     }
                     Command::Merge(key, val, gen) => {
-                        match datastore.merge(RuggedRecord::new(gen, 0, key, val)) {
+                        match datastore.merge(RuggedRecord::new(gen, key, val)) {
                             Some(new_gen) => {
                                 datastore = new_gen;
                                 CmdResult::Ok

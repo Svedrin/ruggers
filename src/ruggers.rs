@@ -6,16 +6,14 @@ const GEN_MASK: u64 = 0xFFFFFFFFFFFFFFF0;
 #[derive(Debug, Eq, PartialEq)]
 pub struct RuggedRecord {
     pub birth_gen: u64,
-    pub parent_gen: u64,
     pub key:       String,
     pub value:     String,
 }
 
 impl RuggedRecord {
-    pub fn new(birth_gen: u64, parent_gen: u64, key: String, value: String) -> Rc<RuggedRecord> {
+    pub fn new(birth_gen: u64, key: String, value: String) -> Rc<RuggedRecord> {
         Rc::new(RuggedRecord {
             birth_gen:  birth_gen,
-            parent_gen: parent_gen,
             key:        key,
             value:      value,
         })
@@ -25,7 +23,6 @@ impl RuggedRecord {
 #[derive(Debug, Eq, PartialEq)]
 pub struct RuggedGeneration {
     this_gen:   u64,
-    parent_gen: u64,
     data:       HashMap<String,Rc<RuggedRecord>>
 }
 
@@ -36,7 +33,6 @@ impl RuggedGeneration {
     pub fn new_root(node_id: u8) -> RuggedGeneration {
         RuggedGeneration {
             this_gen:   node_id as u64,
-            parent_gen: 0,
             data: HashMap::new(),
         }
     }
@@ -47,17 +43,12 @@ impl RuggedGeneration {
     fn new_child(&self) -> RuggedGeneration {
         RuggedGeneration {
             this_gen:   self.this_gen + 16,
-            parent_gen: self.this_gen,
             data:       self.data.clone(),
         }
     }
 
     pub fn this_gen(&self) -> u64 {
         self.this_gen
-    }
-
-    pub fn parent_gen(&self) -> u64 {
-        self.parent_gen
     }
 
     /**
@@ -78,9 +69,8 @@ impl RuggedGeneration {
         let mut next_gen = self.new_child();
         let val = RuggedRecord::new(
             next_gen.this_gen(),
-            self.this_gen,
             key.to_owned(),
-            value.to_owned()
+             value.to_owned()
         );
         next_gen.data.insert(key.to_owned(), val);
         next_gen
@@ -137,29 +127,25 @@ mod tests {
         assert_eq!(
             gen.get(&String::from("Hallo1")).unwrap(),
             RuggedRecord::new(
-                1 + (16 * 1), 1 + (16 * 0),
-                String::from("Hallo1"), String::from("omfg1")
+                1 + (16 * 1), String::from("Hallo1"), String::from("omfg1")
             )
         );
         assert_eq!(
             gen.get(&String::from("Hallo2")).unwrap(),
             RuggedRecord::new(
-                1 + (16 * 2), 1 + (16 * 1),
-                String::from("Hallo2"), String::from("omfg2")
+                1 + (16 * 2), String::from("Hallo2"), String::from("omfg2")
             )
         );
         assert_eq!(
             gen.get(&String::from("Hallo3")).unwrap(),
             RuggedRecord::new(
-                1 + (16 * 3), 1 + (16 * 2),
-                String::from("Hallo3"), String::from("omfg3")
+                1 + (16 * 3), String::from("Hallo3"), String::from("omfg3")
             )
         );
         assert_eq!(
             gen.get(&String::from("Hallo4")).unwrap(),
             RuggedRecord::new(
-                1 + (16 * 4), 1 + (16 * 3),
-                String::from("Hallo4"), String::from("omfg4")
+                1 + (16 * 4), String::from("Hallo4"), String::from("omfg4")
             )
         );
         assert_eq!(gen.this_gen(), 1 + (16 * 4));
@@ -175,13 +161,11 @@ mod tests {
     fn test_merge_success_new_key() {
         let rec3 = RuggedRecord::new(
             2 + (16 * 2),
-            2 + (16 * 1),
             String::from("Hallo3"),
             String::from("yolo3")
         );
         let rec4 = RuggedRecord::new(
             2 + (16 * 3),
-            2 + (16 * 2),
             String::from("Hallo4"),
             String::from("yolo4")
         );
@@ -193,29 +177,25 @@ mod tests {
         assert_eq!(
             gen.get(&String::from("Hallo1")).unwrap(),
             RuggedRecord::new(
-                1 + (16 * 1), 1 + (16 * 0),
-                String::from("Hallo1"), String::from("omfg1")
+                1 + (16 * 1), String::from("Hallo1"), String::from("omfg1")
             )
         );
         assert_eq!(
             gen.get(&String::from("Hallo2")).unwrap(),
             RuggedRecord::new(
-                1 + (16 * 2), 1 + (16 * 1),
-                String::from("Hallo2"), String::from("omfg2")
+                1 + (16 * 2), String::from("Hallo2"), String::from("omfg2")
             )
         );
         assert_eq!(
             gen.get(&String::from("Hallo3")).unwrap(),
             RuggedRecord::new(
-                2 + (16 * 2), 2 + (16 * 1),
-                String::from("Hallo3"), String::from("yolo3")
+                2 + (16 * 2), String::from("Hallo3"), String::from("yolo3")
             )
         );
         assert_eq!(
             gen.get(&String::from("Hallo4")).unwrap(),
             RuggedRecord::new(
-                2 + (16 * 3), 2 + (16 * 2),
-                String::from("Hallo4"), String::from("yolo4")
+                2 + (16 * 3), String::from("Hallo4"), String::from("yolo4")
             )
         );
         assert_eq!(gen.this_gen(), 1 + (16 * 4));
@@ -232,13 +212,11 @@ mod tests {
     fn test_merge_success_existing_key() {
         let rec3 = RuggedRecord::new(
             2 + (16 * 3),
-            2 + (16 * 2),
             String::from("Hallo3"),
             String::from("yolo3")
         );
         let rec4 = RuggedRecord::new(
             2 + (16 * 4),
-            2 + (16 * 3),
             String::from("Hallo4"),
             String::from("yolo4")
         );
@@ -252,29 +230,25 @@ mod tests {
         assert_eq!(
             gen.get(&String::from("Hallo1")).unwrap(),
             RuggedRecord::new(
-                1 + (16 * 1), 1 + (16 * 0),
-                String::from("Hallo1"), String::from("omfg1")
+                1 + (16 * 1), String::from("Hallo1"), String::from("omfg1")
             )
         );
         assert_eq!(
             gen.get(&String::from("Hallo2")).unwrap(),
             RuggedRecord::new(
-                1 + (16 * 2), 1 + (16 * 1),
-                String::from("Hallo2"), String::from("omfg2")
+                1 + (16 * 2), String::from("Hallo2"), String::from("omfg2")
             )
         );
         assert_eq!(
             gen.get(&String::from("Hallo3")).unwrap(),
             RuggedRecord::new(
-                2 + (16 * 3), 2 + (16 * 2),
-                String::from("Hallo3"), String::from("yolo3")
+                2 + (16 * 3), String::from("Hallo3"), String::from("yolo3")
             )
         );
         assert_eq!(
             gen.get(&String::from("Hallo4")).unwrap(),
             RuggedRecord::new(
-                2 + (16 * 4), 2 + (16 * 3),
-                String::from("Hallo4"), String::from("yolo4")
+                2 + (16 * 4), String::from("Hallo4"), String::from("yolo4")
             )
         );
         assert_eq!(gen.this_gen(), 1 + (16 * 6));
@@ -291,13 +265,11 @@ mod tests {
     fn test_merge_failed_existing_key() {
         let rec3 = RuggedRecord::new(
             2 + (16 * 1),
-            2 + (16 * 0),
             String::from("Hallo3"),
             String::from("yolo3")
         );
         let rec4 = RuggedRecord::new(
             2 + (16 * 3),
-            2 + (16 * 2),
             String::from("Hallo4"),
             String::from("yolo4")
         );
@@ -311,29 +283,25 @@ mod tests {
         assert_eq!(
             gen.get(&String::from("Hallo1")).unwrap(),
             RuggedRecord::new(
-                1 + (16 * 1), 1 + (16 * 0),
-                String::from("Hallo1"), String::from("omfg1")
+                1 + (16 * 1), String::from("Hallo1"), String::from("omfg1")
             )
         );
         assert_eq!(
             gen.get(&String::from("Hallo2")).unwrap(),
             RuggedRecord::new(
-                1 + (16 * 2), 1 + (16 * 1),
-                String::from("Hallo2"), String::from("omfg2")
+                1 + (16 * 2), String::from("Hallo2"), String::from("omfg2")
             )
         );
         assert_eq!(
             gen.get(&String::from("Hallo3")).unwrap(),
             RuggedRecord::new(
-                1 + (16 * 3), 1 + (16 * 2),
-                String::from("Hallo3"), String::from("omfg3")
+                1 + (16 * 3), String::from("Hallo3"), String::from("omfg3")
             )
         );
         assert_eq!(
             gen.get(&String::from("Hallo4")).unwrap(),
             RuggedRecord::new(
-                1 + (16 * 4), 1 + (16 * 3),
-                String::from("Hallo4"), String::from("omfg4")
+                1 + (16 * 4), String::from("Hallo4"), String::from("omfg4")
             )
         );
         assert_eq!(gen.this_gen(), 1 + (16 * 4));
@@ -368,36 +336,31 @@ mod tests {
         assert_eq!(
             gen_a.get(&String::from("Hallo1")).unwrap(),
             RuggedRecord::new(
-                1 + (16 * 1), 1 + (16 * 0),
-                String::from("Hallo1"), String::from("omfg1")
+                1 + (16 * 1), String::from("Hallo1"), String::from("omfg1")
             )
         );
         assert_eq!(
             gen_a.get(&String::from("Hallo2")).unwrap(),
             RuggedRecord::new(
-                1 + (16 * 2), 1 + (16 * 1),
-                String::from("Hallo2"), String::from("omfg2")
+                1 + (16 * 2), String::from("Hallo2"), String::from("omfg2")
             )
         );
         assert_eq!(
             gen_a.get(&String::from("Hallo3")).unwrap(),
             RuggedRecord::new(
-                2 + (16 * 5), 2 + (16 * 4),
-                String::from("Hallo3"), String::from("yolo3")
+                2 + (16 * 5), String::from("Hallo3"), String::from("yolo3")
             )
         );
         assert_eq!(
             gen_a.get(&String::from("Hallo4")).unwrap(),
             RuggedRecord::new(
-                2 + (16 * 6), 2 + (16 * 5),
-                String::from("Hallo4"), String::from("yolo4")
+                2 + (16 * 6), String::from("Hallo4"), String::from("yolo4")
             )
         );
         assert_eq!(
             gen_a.get(&String::from("Hallo5")).unwrap(),
             RuggedRecord::new(
-                1 + (16 * 7), 1 + (16 * 6),
-                String::from("Hallo5"), String::from("omfg5")
+                1 + (16 * 7), String::from("Hallo5"), String::from("omfg5")
             )
         );
         assert_eq!(gen_a.this_gen(), 1 + (16 * 7));
