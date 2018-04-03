@@ -29,6 +29,12 @@ fn main() {
         .version(env!("CARGO_PKG_VERSION"))
         .author("Michael Ziegler <diese-addy@funzt-halt.net>")
         .about("Ruggers in-memory cache")
+        .arg(Arg::with_name("node-id")
+            .short("n")
+            .long("node-id")
+            .help("My Node ID [1].")
+            .default_value("1")
+        )
         .arg(Arg::with_name("listen")
             .short("l")
             .long("listen")
@@ -44,7 +50,15 @@ fn main() {
         )
         .get_matches();
 
-    let mut datastore = RuggedGeneration::new_root(1);
+    let node_id: u8 = matches.value_of("node-id").unwrap().parse()
+            .expect("node-id is not an int");
+
+    if node_id > 15 {
+        println!("Node ID must not exceed 15");
+        return;
+    }
+
+    let mut datastore = RuggedGeneration::new_root(node_id);
 
     let socket = UdpSocket::bind(matches.value_of("listen").unwrap()).unwrap();
 
