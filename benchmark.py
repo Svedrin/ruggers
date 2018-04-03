@@ -27,6 +27,7 @@ def main():
         sock.sendto(json.dumps({
             "Set": [random.choice(keys), str(uuid.uuid4())]
         }), random.choice(targets))
+        sock.recvfrom(1024)
         time.sleep(.01)
 
 
