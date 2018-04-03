@@ -24,12 +24,30 @@ def main():
     sock.bind(("0.0.0.0", 55555))
 
     while True:
-        sock.sendto(json.dumps({
-            "Set": [random.choice(keys), str(uuid.uuid4())]
-        }), random.choice(targets))
-        sock.recvfrom(1024)
-        time.sleep(.01)
+        writer = random.choice(targets)
+        key    = random.choice(keys)
+        value  = str(uuid.uuid4())
+        sock.sendto(json.dumps({"Set": [key, value]}), writer)
 
+        data, addr = sock.recvfrom(1024)
+        response = json.loads(data)
+        if response != "Ok":
+            print(response)
+        time.sleep(.3)
+
+        for target in targets:
+            if target == writer:
+                continue
+
+            sock.sendto(json.dumps({"Get": key}), target)
+
+            data, addr = sock.recvfrom(1024)
+            response = json.loads(data)
+            if response["Value"][1] != value:
+                print("[%s] Expected %s, got %r" % (writer, value, response["Value"][1]))
+            else:
+                print("[%s] Response is correct" % str(writer))
+            time.sleep(.1)
 
 
 if __name__ == '__main__':
