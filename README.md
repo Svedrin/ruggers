@@ -11,6 +11,7 @@ and target nodes merge them seamlessly, if:
 
 (Optimistic Locking: Let's hope that no-one meddled with our data in the meantime.)
 
+
 ## Protocol
 
 Ruggers sits on a UDP port (default is `22422`) and waits for JSON data to arrive.
@@ -29,6 +30,42 @@ Commands are:
     Get the current value of `key`, or `""` if unknown.
 
     Response: `{"Value":["key","value"]}`
+
+
+## Replication
+
+So you have multiple nodes, probably one on `192.168.122.78` and the other one
+on `192.168.0.150`, and you want to replicate between them. Easy:
+
+    root@192-168-0-150:/opt/ruggers# cargo run -- -r 192.168.122.78:22422 -n1
+
+    root@192-168-122-78:/opt/ruggers# cargo run -- -r 192.168.0.150:22422 -n2
+
+Now you can send some data to one of them (any one, there's no master):
+
+    # ncat --udp 192.168.0.150 22422
+    {"Set":["hallo1","lolol1"]}
+    {"Set":["hallo2","lolol2"]}
+    {"Set":["hallo3","lolol3"]}
+    {"Set":["hallo4","lolol4"]}
+    "Ok"
+    "Ok"
+    "Ok"
+    "Ok"
+
+And query it on the other:
+
+    # ncat --udp 192.168.122.78 22422
+    {"Get":"hallo1"}
+    {"Get":"hallo2"}
+    {"Get":"hallo3"}
+    {"Get":"hallo4"}
+    {"Value":["hallo1","lolol1"]}
+    {"Value":["hallo2","lolol2"]}
+    {"Value":["hallo3","lolol3"]}
+    {"Value":["hallo4","lolol4"]}
+
+
 
 ## Snapshots
 
