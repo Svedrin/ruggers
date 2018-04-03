@@ -87,6 +87,11 @@ impl RuggedGeneration {
         // b) it was born at the same time or later as the record we're getting now.
         if let Some(ref my_record) = self.data.get(&record.as_ref().key) {
             if my_record.birth_gen >= record.as_ref().birth_gen {
+                println!(
+                    "Can't merge: Mine is {:x}, theirs is {:x}",
+                    my_record.birth_gen,
+                    record.as_ref().birth_gen
+                );
                 return None;
             }
         }

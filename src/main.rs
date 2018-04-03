@@ -92,7 +92,6 @@ fn main() {
                             let repl_data = serde_json::to_string(&repl_cmd)
                                 .expect("Couldn't encode replication command");
                             for argument in targets {
-                                println!("Replicating to {}", argument);
                                 socket.send_to(&repl_data[..].as_bytes(), &argument)
                                     .expect("Couldn't send");
                             }
