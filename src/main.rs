@@ -1,12 +1,14 @@
+extern crate clap;
 extern crate serde;
 extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 
-use std::env;
 use std::net::UdpSocket;
 use std::fmt::Write;
 use std::str;
+
+use clap::{Arg, App};
 
 mod ruggers;
 use ruggers::{RuggedRecord, RuggedGeneration};
@@ -23,9 +25,28 @@ enum Command {
 
 
 fn main() {
+    let matches = App::new(env!("CARGO_PKG_NAME"))
+        .version(env!("CARGO_PKG_VERSION"))
+        .author("Michael Ziegler <diese-addy@funzt-halt.net>")
+        .about("Ruggers in-memory cache")
+        .arg(Arg::with_name("listen")
+            .short("l")
+            .long("listen")
+            .help("Listen address [[::]:22422].")
+            .default_value("[::]:22422")
+        )
+        .arg(Arg::with_name("replication_targets")
+            .short("r")
+            .long("reptargets")
+            .takes_value(true)
+            .multiple(true)
+            .help("Replication targets to send writes to [none].")
+        )
+        .get_matches();
+
     let mut datastore = RuggedGeneration::new_root(1);
 
-    let socket = UdpSocket::bind("[::]:22422").unwrap();
+    let socket = UdpSocket::bind(matches.value_of("listen").unwrap()).unwrap();
 
     let mut buf = [0; 1024*1024];
 
@@ -47,13 +68,15 @@ fn main() {
                     }
                     Command::Set(key, val) => {
                         datastore = datastore.store(&key, &val);
-                        let repl_cmd = Command::Merge(key, val, datastore.this_gen());
-                        let repl_data = serde_json::to_string(&repl_cmd)
-                            .expect("Couldn't encode replication command");
-                        for argument in env::args().skip(1) {
-                            println!("Replicating to {}", argument);
-                            socket.send_to(&repl_data[..].as_bytes(), &argument)
-                                .expect("Couldn't send");
+                        if let Some(targets) = matches.values_of("replication_targets") {
+                            let repl_cmd = Command::Merge(key, val, datastore.this_gen());
+                            let repl_data = serde_json::to_string(&repl_cmd)
+                                .expect("Couldn't encode replication command");
+                            for argument in targets {
+                                println!("Replicating to {}", argument);
+                                socket.send_to(&repl_data[..].as_bytes(), &argument)
+                                    .expect("Couldn't send");
+                            }
                         }
                         Some(Command::Ok)
                     }
