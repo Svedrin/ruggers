@@ -30,62 +30,64 @@ Commands are:
 
     Response: `{"Value":["key","value"]}`
 
-* Snapshots:
+## Snapshots
 
-    Insert a bunch of values:
+Insert a bunch of values:
 
-        {"Set":["hallo1","lolol1"]}
-        {"Set":["hallo2","lolol2"]}
-        {"Set":["hallo3","lolol3"]}
-        {"Set":["hallo4","lolol4"]}
-        "Ok"
-        "Ok"
-        "Ok"
-        "Ok"
+    {"Set":["hallo1","lolol1"]}
+    {"Set":["hallo2","lolol2"]}
+    {"Set":["hallo3","lolol3"]}
+    {"Set":["hallo4","lolol4"]}
+    "Ok"
+    "Ok"
+    "Ok"
+    "Ok"
 
-    Let's read them back:
+Let's read them back:
 
-        {"Get":"hallo1"}
-        {"Get":"hallo2"}
-        {"Get":"hallo3"}
-        {"Get":"hallo4"}
-        {"Value":["hallo1","lolol1"]}
-        {"Value":["hallo2","lolol2"]}
-        {"Value":["hallo3","lolol3"]}
-        {"Value":["hallo4","lolol4"]}
+    {"Get":"hallo1"}
+    {"Get":"hallo2"}
+    {"Get":"hallo3"}
+    {"Get":"hallo4"}
+    {"Value":["hallo1","lolol1"]}
+    {"Value":["hallo2","lolol2"]}
+    {"Value":["hallo3","lolol3"]}
+    {"Value":["hallo4","lolol4"]}
 
-    Create a snapshot:
+Create a snapshot:
 
-        {"SnapCreate":"testsnappen"}
-        "Ok"
+    {"SnapCreate":"testsnappen"}
+    "Ok"
 
-    Modify some data:
+Modify some data:
 
-        {"Set":["hallo3","omfg3"]}
-        {"Set":["hallo4","omfg4"]}
-        "Ok"
-        "Ok"
-        {"Get":"hallo1"}
-        {"Get":"hallo2"}
-        {"Get":"hallo3"}
-        {"Get":"hallo4"}
-        {"Value":["hallo1","lolol1"]}
-        {"Value":["hallo2","lolol2"]}
-        {"Value":["hallo3","omfg3"]}
-        {"Value":["hallo4","omfg4"]}
+    {"Set":["hallo3","omfg3"]}
+    {"Set":["hallo4","omfg4"]}
+    "Ok"
+    "Ok"
+    {"Get":"hallo1"}
+    {"Get":"hallo2"}
+    {"Get":"hallo3"}
+    {"Get":"hallo4"}
+    {"Value":["hallo1","lolol1"]}
+    {"Value":["hallo2","lolol2"]}
+    {"Value":["hallo3","omfg3"]}
+    {"Value":["hallo4","omfg4"]}
 
-    Let's see what our snapshotted data is doing:
+Let's see what our snapshotted data is doing:
 
-        {"SnapGet":["testsnappen","hallo3"]}
-        {"Value":["hallo3","lolol3"]}
-        {"SnapGet":["testsnappen","hallo4"]}
-        {"Value":["hallo4","lolol4"]}
+    {"SnapGet":["testsnappen","hallo3"]}
+    {"Value":["hallo3","lolol3"]}
+    {"SnapGet":["testsnappen","hallo4"]}
+    {"Value":["hallo4","lolol4"]}
 
-    Hooray, it's still there! Let's delete the snapshot and see what happens:
+Hooray, it's still there! Let's delete the snapshot and see what happens:
 
-        {"SnapDelete":"testsnappen"}
-        "Ok"
-        {"SnapGet":["testsnappen","hallo3"]}
-        {"Value":["hallo3",""]}
-        {"SnapGet":["testsnappen","hallo4"]}
-        {"Value":["hallo4",""]}
+    {"SnapDelete":"testsnappen"}
+    "Ok"
+    {"SnapGet":["testsnappen","hallo3"]}
+    {"Value":["hallo3",""]}
+    {"SnapGet":["testsnappen","hallo4"]}
+    {"Value":["hallo4",""]}
+
+Caveat: Snapshots are local to the node you take 'em on.
