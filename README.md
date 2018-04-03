@@ -65,6 +65,9 @@ And query it on the other:
     {"Value":["hallo3","lolol3"]}
     {"Value":["hallo4","lolol4"]}
 
+Nodes will seamlessly merge the changes they get, if their local data isn't newer.
+If it is, they'll `panic!` and you'll have to restart the whole cluster.
+(I should probably improve that.)
 
 
 ## Snapshots
@@ -128,3 +131,8 @@ Hooray, it's still there! Let's delete the snapshot and see what happens:
     {"Value":["hallo4",""]}
 
 Caveat: Snapshots are local to the node you take 'em on.
+
+
+# Persistence
+
+None, unfortunately. :(
