@@ -16,14 +16,11 @@ enum Command {
     Get   ( String ),
     Set   ( String, String ),
     Merge ( String, String, u64 ),
-}
-
-#[derive(Serialize, Deserialize)]
-enum CmdResult {
     Ok,
     Error ( String ),
     Value ( String, String ),
 }
+
 
 fn main() {
     let mut datastore = RuggedGeneration::new_root(1);
@@ -43,30 +40,30 @@ fn main() {
                 match cmd {
                     Command::Get(key) => {
                         if let Some(val) = datastore.get(&key) {
-                            CmdResult::Value(key, val.as_ref().value.to_owned())
+                            Command::Value(key, val.as_ref().value.to_owned())
                         } else {
-                            CmdResult::Value(key, String::from(""))
+                            Command::Value(key, String::from(""))
                         }
                     }
                     Command::Set(key, val) => {
                         datastore = datastore.store(&key, &val);
-                        CmdResult::Ok
+                        Command::Ok
                     }
                     Command::Merge(key, val, gen) => {
                         match datastore.merge(RuggedRecord::new(gen, key, val)) {
                             Some(new_gen) => {
                                 datastore = new_gen;
-                                CmdResult::Ok
+                                Command::Ok
                             }
                             None => {
-                                CmdResult::Error(String::from("Merge conflict"))
+                                Command::Error(String::from("Merge conflict"))
                             }
                         }
                     }
                 }
             }
             Err(err) => {
-                CmdResult::Error(err.to_string())
+                Command::Error(err.to_string())
             }
         };
 
