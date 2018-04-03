@@ -20,7 +20,7 @@ impl RuggedRecord {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct RuggedGeneration {
     this_gen:   u64,
     data:       HashMap<String,Rc<RuggedRecord>>

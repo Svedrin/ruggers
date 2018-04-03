@@ -4,6 +4,7 @@ extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 
+use std::collections::HashMap;
 use std::net::UdpSocket;
 use std::fmt::Write;
 use std::str;
@@ -18,6 +19,9 @@ enum Command {
     Get   ( String ),
     Set   ( String, String ),
     Merge ( String, String, u64 ),
+    SnapCreate ( String ),
+    SnapGet    ( String, String ),
+    SnapDelete ( String ),
     Ok,
     Error ( String ),
     Value ( String, String ),
@@ -59,6 +63,7 @@ fn main() {
     }
 
     let mut datastore = RuggedGeneration::new_root(node_id);
+    let mut snapshots = HashMap::new();
 
     let socket = UdpSocket::bind(matches.value_of("listen").unwrap()).unwrap();
 
@@ -104,6 +109,25 @@ fn main() {
                                 Some(Command::Error(String::from("Merge conflict")))
                             }
                         }
+                    }
+                    Command::SnapCreate(snapname) => {
+                        snapshots.insert(snapname, datastore.clone());
+                        Some(Command::Ok)
+                    }
+                    Command::SnapGet(snapname, key) => {
+                        if let Some(snap_datastore) = snapshots.get(&snapname) {
+                            if let Some(val) = snap_datastore.get(&key) {
+                                Some(Command::Value(key, val.as_ref().value.to_owned()))
+                            } else {
+                                Some(Command::Value(key, String::from("")))
+                            }
+                        } else {
+                            Some(Command::Value(key, String::from("")))
+                        }
+                    }
+                    Command::SnapDelete(snapname) => {
+                        snapshots.remove(&snapname);
+                        Some(Command::Ok)
                     }
                     Command::Ok => None,
                     Command::Value(_, _) => Some(Command::Error(String::from("Use Set to store something"))),
